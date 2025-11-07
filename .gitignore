@@ -1,0 +1,12 @@
+# File rahasia (JANGAN DI-UPLOAD)
+.env
+
+# Folder virtual environment (JANGAN DI-UPLOAD)
+venv/
+
+# Database lokal
+db.sqlite3
+
+# File cache Python
+__pycache__/
+*.pyc
