@@ -16,9 +16,8 @@
         @media print { .no-print { display: none !important; } body { margin: 0; } }
         body { background-color: #f0f2f5; }
         .kwitansi-wrapper { max-width: 800px; margin: 40px auto; box-shadow: 0 0 15px rgba(0,0,0,0.1); background-color: #ffffff; position: relative; overflow: hidden; }
-        .kwitansi-header { padding: 30px; background-color: #0d6efd; color: white; text-align: center; }
-        .kwitansi-header h1 { margin: 0; font-size: 2.5rem; font-weight: 300; }
-        .kwitansi-header p { margin: 0; font-size: 1.1rem; }
+        .kwitansi-header-image { padding: 0; background-color: #ffffff; text-align: center; }
+        .kwitansi-header-image img { display: block; width: 100%; height: auto; }
         .kwitansi-body { padding: 40px 50px; position: relative; z-index: 2; }
         .kwitansi-details { margin-top: 30px; }
         .kwitansi-details .row { margin-bottom: 15px; }
@@ -44,11 +43,9 @@
         <div class="watermark">LUNAS</div>
 
         <div class="kwitansi-header">
-            <h1><img src="{% static 'pembayaran/images/logo-smp.jpg' %}" 
-                alt="Logo Sekolah" 
-                style="height: 70px; margin-bottom: 1px;">
-            KWITANSI PEMBAYARAN</h1>
-            <p>SMP-IT DARUS-SHOLIHIN</p>
+            <img src="{% static 'pembayaran/images/kop.jpg' %}" 
+                alt="kop sekolah" 
+                style="width: 100%; height: auto; display: block;">
         </div>
 
         <div class="kwitansi-body">

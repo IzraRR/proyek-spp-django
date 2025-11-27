@@ -65,6 +65,7 @@ def buat_transaksi(request, tagihan_id):
     try:
         # 1. Ambil data tagihan dari database
         tagihan = Tagihan.objects.get(id=tagihan_id, siswa=request.user.siswa)
+        jumlah_bayar = int(tagihan.sisa_tagihan)
         
         # 2. Cek apakah tagihan sudah lunas
         if tagihan.status == 'LUNAS':
@@ -132,69 +133,71 @@ def lihat_kwitansi(request, pembayaran_id):
     return render(request, 'pembayaran/kwitansi.html', context)
 
 
-@csrf_exempt # WAJIB, karena notifikasi ini datang dari luar
+@csrf_exempt
 def webhook_midtrans(request):
     if request.method == 'POST':
-        try: # <-- TRY 1: Untuk menangkap error JSON
-            # 1. Ambil body notifikasi dalam format JSON
+        try:
+            # 1. Ambil data dari Midtrans
             body = json.loads(request.body)
             transaction_status = body.get('transaction_status')
             order_id = body.get('order_id')
-            transaction_id = body.get('transaction_id') # ID dari Midtrans
-            
-            print(f"WEBHOOK DITERIMA: Order ID {order_id}, Status {transaction_status}")
+            transaction_id = body.get('transaction_id') # <-- INI ID OTOMATIS DARI MIDTRANS
+            payment_type = body.get('payment_type')
+            gross_amount = Decimal(body.get('gross_amount')) # Jumlah yang dibayar kali ini
 
-            # 2. Cek status transaksi
-            tagihan_id = None
-            try: # <-- TRY 2: Untuk menangkap error database/parsing
-                # 3. Parsing order_id untuk dapatkan tagihan_id
-                # Asumsi format order_id: "SPP-TAGIHAN_ID-UUID"
+            print(f"WEBHOOK: Order {order_id}, Status {transaction_status}, ID Transaksi {transaction_id}")
+
+            # 2. Cari Tagihan Terkait
+            try:
+                # Format order_id kita: "SPP-ID_TAGIHAN-UUID"
                 tagihan_id = order_id.split('-')[1]
                 tagihan = Tagihan.objects.get(id=tagihan_id)
-
-                # 4. Handle berdasarkan status
-                if transaction_status == 'settlement':
-                    # Pembayaran LUNAS
-                    if tagihan.status != 'LUNAS':
-                        tagihan.status = 'LUNAS'
-                        tagihan.save()
-
-                        # Buat catatan Pembayaran HANYA jika belum ada
-                        Pembayaran.objects.update_or_create(
-                            tagihan=tagihan,
-                            defaults={
-                                'jumlah_bayar': tagihan.jumlah,
-                                'id_transaksi_gateway': transaction_id,
-                                'metode_pembayaran': body.get('payment_type')
-                            }
-                        )
-                        print(f"Tagihan {tagihan_id} berhasil di-update ke LUNAS.")
-
-                elif transaction_status == 'pending':
-                    # Pembayaran Menunggu (misal: Bank Transfer)
-                    if tagihan.status == 'BELUM_LUNAS':
-                        tagihan.status = 'PENDING'
-                        tagihan.save()
-                        print(f"Tagihan {tagihan_id} di-update ke PENDING.")
-
-                elif transaction_status in ['expire', 'cancel', 'deny']:
-                    # Pembayaran Gagal, Batal, atau Kadaluarsa
-                    if tagihan.status == 'PENDING' or tagihan.status == 'BELUM_LUNAS':
-                        tagihan.status = 'KADALUARSA'
-                        tagihan.save()
-                        print(f"Tagihan {tagihan_id} di-update ke KADALUARSA.")
-
-                # 5. Kirim balasan "OK" ke Midtrans
-                return HttpResponse(status=200)
-
             except (Tagihan.DoesNotExist, IndexError, ValueError) as e:
-                print(f"Error: Tagihan tidak ditemukan atau order_id tidak valid. Order ID: {order_id}. Error: {e}")
-                return HttpResponse(status=404) # Not Found
+                print(f"Error cari tagihan: {e}")
+                return HttpResponse(status=404)
 
-        except json.JSONDecodeError: # <-- EXCEPT yang hilang untuk TRY 1
-            print("Error: JSON tidak valid dari Midtrans")
-            return HttpResponse(status=400) # Bad Request
+            # 3. LOGIKA UTAMA
+            if transaction_status == 'settlement':
+                # "Capture" atau "Settlement" berarti uang masuk/berhasil
+                
+                # A. Cek apakah transaksi ID ini sudah pernah dicatat sebelumnya?
+                # Gunakan get_or_create agar tidak ada duplikasi data jika Midtrans kirim notif 2x
+                pembayaran, created = Pembayaran.objects.get_or_create(
+                    id_transaksi_gateway=transaction_id, # Kunci uniknya adalah ID dari Midtrans
+                    defaults={
+                        'tagihan': tagihan,
+                        'jumlah_bayar': gross_amount,
+                        'metode_pembayaran': payment_type,
+                        # tanggal_bayar akan otomatis terisi 'now' karena auto_now_add di models
+                    }
+                )
+
+                # B. JIKA ini adalah data pembayaran BARU (created=True), update saldo Tagihan
+                if created:
+                    # Tambahkan jumlah yang baru dibayar ke total yang sudah dibayar
+                    tagihan.jumlah_terbayar += gross_amount
+                    
+                    # Panggil save() agar logika status (LUNAS/BELUM) di models.py berjalan
+                    tagihan.save() 
+                    
+                    print(f"Pembayaran baru Rp {gross_amount} diterima. Total terbayar: {tagihan.jumlah_terbayar}")
+                else:
+                    print("Notifikasi duplikat diterima, diabaikan.")
+
+            elif transaction_status in ['expire', 'cancel', 'deny']:
+                # Jika pembayaran gagal, kita tidak perlu mengubah saldo 'jumlah_terbayar'
+                # Kita hanya perlu memastikan status tagihan tidak nyangkut di 'PENDING'
+                if tagihan.status == 'PENDING':
+                    # Kembalikan status sesuai kondisi uang
+                    tagihan.save() # save() akan otomatis hitung ulang: kalau 0 jadi BELUM_LUNAS
+                    print(f"Transaksi {order_id} gagal. Status dikembalikan.")
+
+            return HttpResponse(status=200)
+
+        except json.JSONDecodeError:
+            return HttpResponse(status=400)
+        except Exception as e:
+            print(f"Error Webhook: {e}")
+            return HttpResponse(status=500)
     
-    # Jika request bukan POST
-    print("Webhook hanya mengizinkan metode POST")
-    return HttpResponse(status=405) # Method Not Allowed
+    return HttpResponse(status=405)
