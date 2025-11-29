@@ -7,6 +7,7 @@ from django.conf import settings
 from django.db.models import Sum, Q
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from decimal import Decimal
 import json
 import midtransclient
 import uuid
