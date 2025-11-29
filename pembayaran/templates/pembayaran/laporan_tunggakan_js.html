@@ -1,0 +1,244 @@
+{% load static %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Laporan Tunggakan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        body {
+            background-color: #eee;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            /* Hapus display:flex agar tidak mempengaruhi flow html2pdf */
+            margin: 0; 
+            padding: 20px;
+        }
+
+        /* === 1. PENGATURAN KERTAS (SOLUSI HALAMAN KOSONG) === */
+        .kertas-a4 {
+            background: white;
+            /* Lebar fix A4 dalam pixel (agar skala pas) */
+            width: 794px; 
+            /* Tinggi minimal A4 */
+            min-height: 1123px;
+            
+            margin: 0 auto; /* Tengah di layar */
+            
+            /* SOLUSI KOP FULL: Padding di-NOL-kan */
+            padding: 0; 
+            
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            position: relative;
+            
+            /* SOLUSI HALAMAN KOSONG: Sembunyikan overflow */
+            overflow: hidden; 
+        }
+
+        /* === 2. KOP SURAT FULL WIDTH === */
+        .kop-wrapper {
+            width: 100%;
+            line-height: 0; /* Hapus celah putih di bawah gambar */
+            margin: 0;
+            padding: 0;
+        }
+        .kop-img {
+            width: 100%; /* Paksa gambar selebar parent (kertas) */
+            height: auto;
+            display: block;
+        }
+
+        /* === 3. WRAPPER ISI (Agar teks punya jarak pinggir) === */
+        .isi-laporan {
+            /* Beri padding DI SINI, bukan di .kertas-a4 */
+            padding: 20px 40px 40px 40px; /* Atas Kanan Bawah Kiri */
+        }
+
+        /* Judul & Meta */
+        .judul-laporan {
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            text-decoration: underline;
+            margin-top: 10px;
+            color: #000;
+        }
+        .meta-info {
+            font-size: 12px;
+            color: #000;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        /* Tabel */
+        .table-custom {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            font-size: 12px;
+        }
+        .table-custom th {
+            background-color: #ffffff !important;
+            color: rgb(0, 0, 0) !important;
+            padding: 8px;
+            text-align: center;
+            border: 1px solid #555;
+            vertical-align: middle;
+            font-weight: bold;
+        }
+        .table-custom td {
+            padding: 6px;
+            border: 1px solid #555;
+        }
+        .table-footer td {
+            background-color: #ffffff;
+            border: 1px solid #555;
+            font-weight: bold;
+            padding: 8px;
+            font-size: 13px;
+        }
+
+        /* Tanda Tangan */
+        .ttd-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 10px;
+            page-break-inside: avoid; /* Jangan potong TTD */
+        }
+        .ttd-box {
+            text-align: center;
+            width: 220px;
+            position: relative;
+            font-size: 12px;
+        }
+        .ttd-images {
+            position: relative;
+            height: 90px;
+            width: 100%;
+            margin: 5px 0;
+        }
+        .img-cap {
+            position: absolute;
+            top: 0; left: 10px;
+            width: 120px; /* Sesuaikan */
+            z-index: 2;
+            transform: rotate(-5deg);
+        }
+        .img-ttd {
+            position: absolute;
+            top: 10px; left: 35px;
+            width: 120px; /* Sesuaikan */
+            z-index: 3;
+        }
+        .nama-terang {
+            font-weight: bold;
+            text-decoration: underline;
+            margin-top: 5px;
+        }
+
+        /* Print Mode */
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; margin: 0; padding: 0; }
+            .kertas-a4 { margin: 0; box-shadow: none; width: 100%; min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container text-center mt-4 mb-4 no-print">
+        <a href="/admin/pembayaran/tagihan/" class="btn btn-secondary shadow-sm">Kembali</a>
+        <button onclick="downloadPDF()" class="btn btn-primary shadow-sm ms-2">
+            <i class="bi bi-file-earmark-pdf-fill"></i> Download PDF Laporan
+        </button>
+    </div>
+
+    <div class="kertas-a4" id="area-laporan">
+        
+        <div class="kop-wrapper">
+            <img src="{% static 'pembayaran/images/kop.jpg' %}" class="kop-img" alt="Kop Surat">
+        </div>
+
+        <div class="isi-laporan">
+            
+            <div class="judul-laporan">Laporan Tunggakan Siswa</div>
+            <div class="meta-info">
+                <strong>Tanggal Cetak:</strong> {% now "d F Y" %} <br>
+                <strong>Total Data:</strong> {{ data_tagihan.count }} Siswa
+            </div>
+
+            <table class="table-custom">
+                <thead>
+                    <tr>
+                        <th width="5%">No</th>
+                        <th width="30%">Nama Siswa</th>
+                        <th width="10%">Kelas</th>
+                        <th width="25%">Judul Tagihan</th>
+                        <th width="15%">Status</th>
+                        <th width="15%">Sisa Tagihan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tagihan in data_tagihan %}
+                    <tr>
+                        <td class="text-center">{{ forloop.counter }}</td>
+                        <td>{{ tagihan.siswa.nama_lengkap }}</td>
+                        <td class="text-center">{{ tagihan.siswa.kelas }}</td>
+                        <td>{{ tagihan.judul }}</td>
+                        <td class="text-center text-danger fw-bold">Belum Lunas</td>
+                        <td class="text-end">Rp {{ tagihan.sisa_tagihan|intcomma }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="table-footer">
+                    <tr>
+                        <td colspan="5" class="text-center pe-3">TOTAL TUNGGAKAN</td>
+                        <td class="text-end">Rp {{ total_sisa|intcomma }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div class="ttd-container">
+                <div class="ttd-box">
+                    <div style="font-size: 0.9rem;">Depok, {% now "d F Y" %}</div>
+                    <div style="font-size: 0.9rem;">Kepala Sekolah,</div>
+                    
+                    <div class="ttd-images">
+                        <img src="{% static 'pembayaran/images/cap.png' %}" class="img-cap">
+                        <img src="{% static 'pembayaran/images/ttd-kepsek.png' %}" class="img-ttd">
+                    </div>
+
+                    <div class="nama-terang">Yuni Sakhbaningrum, S.Pd.</div>
+                </div>
+            </div>
+
+        </div> </div>
+
+    <script>
+        function downloadPDF() {
+            const element = document.getElementById('area-laporan');
+            const btn = document.querySelector('button[onclick="downloadPDF()"]');
+            
+            btn.innerHTML = 'Sedang Memproses...';
+            btn.disabled = true;
+
+            const opt = {
+                margin:       0, // KUNCI: Margin PDF 0 agar kop mentok
+                filename:     'Laporan_Tunggakan_{% now "Y-m-d" %}.pdf',
+                image:        { type: 'jpeg', quality: 3 },
+                html2canvas:  { scale: 4, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save().then(function(){
+                btn.innerHTML = 'Download PDF Laporan';
+                btn.disabled = false;
+            });
+        }
+    </script>
+</body>
+</html>

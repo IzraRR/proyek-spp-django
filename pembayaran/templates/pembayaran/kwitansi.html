@@ -25,6 +25,50 @@
         .kwitansi-details .col-value { color: #000; }
         .kwitansi-footer { padding: 30px 50px; text-align: center; font-size: 0.9rem; color: #777; border-top: 1px solid #eee; }
         .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg); font-size: 10rem; font-weight: bold; color: #198754; opacity: 0.1; z-index: 1; user-select: none; }
+        .ttd-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 40px;
+            margin-bottom: 80px;
+            padding-right: 20px;
+        }
+        .ttd-box {
+            text-align: center;
+            width: 250px;
+            position: relative;
+        }
+        .ttd-image {
+            height: 100px; /* Tinggi tanda tangan, sesuaikan */
+            width: auto;
+            margin: 1px auto; /* Jarak atas bawah */
+            display: block;
+            position: relative;
+            z-index: 10;
+        }
+        .ttd-date {
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+        .ttd-name {
+            font-weight: bold;
+            margin-top: 1px;
+        }
+        .ttd-jabatan {
+            font-size: 0.85rem;
+        }
+        .ttd-cap {
+            position: absolute;
+            width: 200px; /* Sesuaikan ukuran cap Anda */
+            height: auto;
+            opacity: 0.8; /* Cap sedikit transparan biar real */
+            transform: rotate(-12deg); /* Miringkan cap sedikit ke kiri */
+
+            /* MENGATUR POSISI CAP */
+            /* Mainkan angka ini agar pas di tengah tanda tangan */
+            top: 3px;    /* Jarak dari atas kotak */
+            left: 4px;   /* Jarak dari kiri kotak */
+            z-index: 1;
+        }
     </style>
 </head>
 <body>
@@ -101,6 +145,25 @@
                     <div class="col-sm-8 col-value" style="word-break: break-all;">: {{ pembayaran.id_transaksi_gateway }}</div>
                 </div>
             </div>
+        </div><div class="ttd-container">
+            <div class="ttd-box">
+                <div class="ttd-date">
+                    Depok, {% now "d F Y" %}
+                </div>
+                <div class="ttd-jabatan">
+                    Kepala Sekolah,
+                </div>
+                <img src="{% static 'pembayaran/images/cap.png' %}"
+                    alt="Cap Sekolah"
+                    class="ttd-cap">
+                <img src="{% static 'pembayaran/images/ttd-kepsek.png' %}" 
+                    alt="Tanda Tangan" 
+                    class="ttd-image">
+                <div class="ttd-name" style="text-decoration: underline;">
+                    Yuni Sakhbaningrum, S.Pd.
+                </div>
+            </div>
+        </div>
         </div>
 
         <div class="kwitansi-footer">

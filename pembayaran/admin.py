@@ -1,16 +1,13 @@
 # pembayaran/admin.py
 
 import os
-import base64
 from django.conf import settings
 from django.contrib.staticfiles import finders
 from django.contrib import admin
 from django.contrib.humanize.templatetags.humanize import intcomma
 from django.db.models import Sum
 from .models import Siswa, Tagihan, Pembayaran, BuatTagihanMassal
-from django.http import HttpResponse
-from django.template.loader import get_template
-from xhtml2pdf import pisa
+from django.shortcuts import render
 
 class TagihanInline(admin.TabularInline):
     """
@@ -60,37 +57,24 @@ class SiswaAdmin(admin.ModelAdmin):
         return "✅ Lunas"
     total_tunggakan_siswa.short_description = "Sisa Tunggakan"
 
-@admin.action(description='Download PDF Laporan Tunggakan')
-def download_laporan_pdf(modeladmin, request, queryset):
+def get_image_base64(filename):
+    """Mengubah file gambar menjadi string base64"""
+    path = os.path.join(settings.BASE_DIR, 'pembayaran/static/pembayaran/images/', filename)
+    if os.path.exists(path):
+        with open(path, "rb") as img:
+            return base64.b64encode(img.read()).decode('utf-8')
+    return None
+
+@admin.action(description='Lihat Laporan Tunggakan')
+def view_laporan_tunggakan(modeladmin, request, queryset):
     total_sisa = 0
     for t in queryset:
         total_sisa += t.sisa_tagihan
-    gambar_path = os.path.join(settings.BASE_DIR, 'pembayaran/static/pembayaran/images/kop.jpg')    
-    encoded_string = ""
-    if os.path.exists(gambar_path):
-        with open(gambar_path, "rb") as image_file:
-            encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
-    else:
-        print(f"Warning: Image not found at {gambar_path}")
-
     context = {
         'data_tagihan': queryset.order_by('siswa__kelas', 'siswa__nama_lengkap'),
         'total_sisa': total_sisa,
-        'gambar_kop': encoded_string,
     }
-
-    template_path = 'pembayaran/laporan_tunggakan.html'
-    template = get_template(template_path)
-    html = template.render(context)
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="laporan_tunggakan.pdf"'
-    pisa_status = pisa.CreatePDF(
-       html, 
-       dest=response
-    )
-    if pisa_status.err:
-       return HttpResponse('Terjadi kesalahan PDF <pre>' + html + '</pre>')
-    return response
+    return render(request, 'pembayaran/laporan_tunggakan_js.html', context)
 
 @admin.register(Tagihan)
 class TagihanAdmin(admin.ModelAdmin):
@@ -98,7 +82,7 @@ class TagihanAdmin(admin.ModelAdmin):
     list_filter = ('status', 'bulan', 'siswa__kelas')
     search_fields = ('judul', 'siswa__nama_lengkap')
     list_editable = ('jumlah_terbayar',)
-    actions = [download_laporan_pdf]
+    actions = [view_laporan_tunggakan]
     
     def jumlah_rp(self, obj): return f"Rp {intcomma(obj.jumlah)}"
     
