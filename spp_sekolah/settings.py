@@ -136,7 +136,7 @@ LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 
 # Mengarahkan pengguna ke halaman login setelah logout
-LOGOUT_REDIRECT_URL = '/login/'
+LOGOUT_REDIRECT_URL = '/admin'  
 
 # Konfigurasi Midtrans
 MIDTRANS_CLIENT_KEY = os.getenv('MIDTRANS_CLIENT_KEY')
