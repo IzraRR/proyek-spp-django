@@ -58,7 +58,7 @@ def dashboard_siswa(request):
 def buat_transaksi(request, tagihan_id):
     # Konfigurasi Midtrans
     snap = midtransclient.Snap(
-        is_production=False, # Set False untuk Sandbox
+        is_production=True, # Set False untuk Sandbox
         server_key=settings.MIDTRANS_SERVER_KEY,
         client_key=settings.MIDTRANS_CLIENT_KEY
     )
@@ -111,7 +111,7 @@ def buat_transaksi(request, tagihan_id):
 
 # 1. Konfigurasi "Core API" client Midtrans untuk verifikasi
 core_api = midtransclient.CoreApi(
-    is_production=False,
+    is_production=True,
     server_key=settings.MIDTRANS_SERVER_KEY,
     client_key=settings.MIDTRANS_CLIENT_KEY
 )
