@@ -1,7 +1,6 @@
-# File rahasia (JANGAN DI-UPLOAD)
 .env
 
-# Folder virtual environment (JANGAN DI-UPLOAD)
+# Folder virtual environment
 venv/
 
 # Database lokal
