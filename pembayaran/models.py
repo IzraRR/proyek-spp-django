@@ -87,12 +87,9 @@ class Pembayaran(models.Model):
 
 class BuatTagihanMassal(models.Model):
     KELAS_CHOICES = [
-        ('7A', '7A'),
-        ('7B', '7B'),
-        ('8A', '8A'),
-        ('8B', '8B'),
-        ('9A', '9A'),
-        ('9B', '9B'),
+        ('7', '7'),
+        ('8', '8'),
+        ('9', '9'),
         ('SEMUA', 'Semua Kelas'),
     ]
 
