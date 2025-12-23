@@ -24,11 +24,12 @@
         .kwitansi-details .col-label { font-weight: bold; color: #555; }
         .kwitansi-details .col-value { color: #000; }
         .kwitansi-footer { padding: 30px 50px; text-align: center; font-size: 0.9rem; color: #777; border-top: 1px solid #eee; }
-        .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg); font-size: 10rem; font-weight: bold; color: #198754; opacity: 0.1; z-index: 1; user-select: none; }
+        /* Watermark default style */
+        .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg); font-size: 16rem; font-weight: bold; opacity: 0.1; z-index: 1; user-select: none; }
         .ttd-container {
             display: flex;
             justify-content: flex-end;
-            margin-top: 40px;
+            margin-top: 4px;
             margin-bottom: 80px;
             padding-right: 20px;
         }
@@ -38,9 +39,9 @@
             position: relative;
         }
         .ttd-image {
-            height: 100px; /* Tinggi tanda tangan, sesuaikan */
+            height: 110px; 
             width: auto;
-            margin: 1px auto; /* Jarak atas bawah */
+            margin: 0px auto; 
             display: block;
             position: relative;
             z-index: 10;
@@ -58,15 +59,12 @@
         }
         .ttd-cap {
             position: absolute;
-            width: 200px; /* Sesuaikan ukuran cap Anda */
+            width: 200px; 
             height: auto;
-            opacity: 0.8; /* Cap sedikit transparan biar real */
-            transform: rotate(-12deg); /* Miringkan cap sedikit ke kiri */
-
-            /* MENGATUR POSISI CAP */
-            /* Mainkan angka ini agar pas di tengah tanda tangan */
-            top: 3px;    /* Jarak dari atas kotak */
-            left: 4px;   /* Jarak dari kiri kotak */
+            opacity: 0.8; 
+            transform: rotate(-12deg); 
+            top: 0px;    
+            left: 0px;   
             z-index: 1;
         }
     </style>
@@ -84,7 +82,11 @@
 
     <div class="kwitansi-wrapper" id="kwitansi-area">
         
-        <div class="watermark">LUNAS</div>
+        {% if pembayaran.tagihan.lunas or pembayaran.tagihan.sisa_tagihan <= 0 %}
+            <div class="watermark" style="color: #198754;">LUNAS</div>
+        {% else %}
+            <div class="watermark" style="color: #dc3545; font-size: 10rem;">CICILAN</div>
+        {% endif %}
 
         <div class="kwitansi-header">
             <img src="{% static 'pembayaran/images/kop.jpg' %}" 
@@ -109,25 +111,53 @@
 
             <hr class="my-4">
 
-            <h4>Untuk Pembayaran:</h4>
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Deskripsi</th>
-                        <th class="text-end">Jumlah</th>
+            <h4>Untuk Pembayaran {{ pembayaran.tagihan.judul }}</h4>
+            <table class="table table-bordered table-sm" style="font-size: 14px;">
+                <thead class="table-light">
+                    <tr class="text-center">
+                        <th width="5%">No</th>
+                        <th>Keterangan Transaksi</th>
+                        <th width="25%">Nominal</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>{{ pembayaran.tagihan.judul }}</td>
-                        <td class="text-end">Rp {{ pembayaran.jumlah_bayar|intcomma }}</td>
+                    {% for p in riwayat_pembayaran %}
+                    <tr {% if p.id == pembayaran.id %}{% endif %}>
+                        <td class="text-center">{{ forloop.counter }}</td>
+                        <td>
+                            {% if p.id == pembayaran.id %}
+                                Angsuran Ke-{{ forloop.counter }}
+                            {% else %}
+                                Angsuran Ke-{{ forloop.counter }}
+                            {% endif %}
+                        </td>
+                        <td class="text-end">Rp {{ p.jumlah_bayar|intcomma }}</td>
                     </tr>
+                    {% endfor %}
                 </tbody>
+
                 <tfoot class="table-group-divider">
-                    <tr class="fw-bold">
-                        <td>Total Pembayaran</td>
-                        <td class="text-end">Rp {{ pembayaran.jumlah_bayar|intcomma }}</td>
+                    <tr class="text-danger fw-bold">
+                        <td colspan="2" class="text-end">Total Dana Masuk</td>
+                        <td class="text-end">Rp {{ pembayaran.tagihan.jumlah_terbayar|intcomma }}</td>
                     </tr>
+                    
+                    <tr class="text-danger fw-bold">
+                        <td colspan="2" class="text-end">Total Tagihan</td>
+                        <td class="text-end">Rp {{ pembayaran.tagihan.jumlah|default:pembayaran.tagihan.jumlah|intcomma }}</td>
+                    </tr>
+
+                    {% if not pembayaran.tagihan.lunas and pembayaran.tagihan.sisa_tagihan > 0 %}
+                    <tr class="text-danger fw-bold">
+                        <td colspan="2" class="text-end">Sisa Kekurangan</td>
+                        <td class="text-end">Rp {{ pembayaran.tagihan.sisa_tagihan|intcomma }}</td>
+                    </tr>
+                    {% elif pembayaran.tagihan.lunas %}
+                    <tr class="text-success fw-bold">
+                        <td colspan="2" class="text-end">STATUS</td>
+                        <td class="text-end">LUNAS</td>
+                    </tr>
+                    {% endif %}
                 </tfoot>
             </table>
 
@@ -144,14 +174,36 @@
                     <div class="col-sm-4 col-label">ID Transaksi</div>
                     <div class="col-sm-8 col-value" style="word-break: break-all;">: {{ pembayaran.id_transaksi_gateway }}</div>
                 </div>
+
+                {% if is_cicilan %}
+                <div class="row mt-2">
+                    <div class="col-sm-4 col-label">Keterangan Cicilan</div>
+                    <div class="col-sm-8 col-value fw-bold" style="color: #d35400;">
+                        : Pembayaran Angsuran Ke-{{ angsuran_ke }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="row mt-3">
+                    <div class="col-sm-4 col-label">Status Tagihan</div>
+                    <div class="col-sm-8 col-value fw-bold">
+                        {% if pembayaran.tagihan.lunas or pembayaran.tagihan.sisa_tagihan <= 0 %}
+                            <span class="text-success">: LUNAS</span>
+                        {% else %}
+                            <span class="text-danger">: BELUM LUNAS (CICILAN)</span>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
-        </div><div class="ttd-container">
+        </div>
+
+        <div class="ttd-container">
             <div class="ttd-box">
                 <div class="ttd-date">
                     Depok, {% now "d F Y" %}
                 </div>
                 <div class="ttd-jabatan">
-                    Kepala Sekolah,
+                    Kepala SMP IT Darus-Sholihin,
                 </div>
                 <img src="{% static 'pembayaran/images/cap.png' %}"
                     alt="Cap Sekolah"
@@ -159,7 +211,7 @@
                 <img src="{% static 'pembayaran/images/ttd-kepsek.png' %}" 
                     alt="Tanda Tangan" 
                     class="ttd-image">
-                <div class="ttd-name" style="text-decoration: underline;">
+                <div class="ttd-name">
                     Yuni Sakhbaningrum, S.Pd.
                 </div>
             </div>
@@ -169,7 +221,7 @@
         <div class="kwitansi-footer">
             Ini adalah bukti pembayaran yang sah dan dibuat secara otomatis oleh sistem.
             <br>
-            &copy; 2025 SPP SMP-IT DARUS-SHOLIHIN.
+            &copy; 2025 SPP SMP IT Darus-Sholihin.
         </div>
     </div>
     

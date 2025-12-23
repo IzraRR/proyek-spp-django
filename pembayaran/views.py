@@ -1,5 +1,6 @@
 # pembayaran/views.py
 
+import datetime
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .models import Siswa, Tagihan, Pembayaran
@@ -58,7 +59,7 @@ def dashboard_siswa(request):
 def buat_transaksi(request, tagihan_id):
     # Konfigurasi Midtrans
     snap = midtransclient.Snap(
-        is_production=False, # Set False untuk Sandbox
+        is_production=True, # Set False untuk Sandbox
         server_key=settings.MIDTRANS_SERVER_KEY,
         client_key=settings.MIDTRANS_CLIENT_KEY
     )
@@ -111,7 +112,7 @@ def buat_transaksi(request, tagihan_id):
 
 # 1. Konfigurasi "Core API" client Midtrans untuk verifikasi
 core_api = midtransclient.CoreApi(
-    is_production=False,
+    is_production=True,
     server_key=settings.MIDTRANS_SERVER_KEY,
     client_key=settings.MIDTRANS_CLIENT_KEY
 )
@@ -121,18 +122,67 @@ def lihat_kwitansi(request, pembayaran_id):
     # 1. Ambil data pembayaran, atau tampilkan 404 jika tidak ditemukan
     pembayaran = get_object_or_404(Pembayaran, id=pembayaran_id)
 
-    # 2. Keamanan: Pastikan siswa yang login adalah pemilik kwitansi ini
-    if pembayaran.tagihan.siswa != request.user.siswa:
-        # Jika bukan, kembalikan ke dashboard (atau tampilkan error)
-        messages.error(request, "Anda tidak memiliki izin untuk melihat kwitansi ini.")
-        return redirect('dashboard')
+    if request.user.is_staff or request.user.is_superuser:
+        pass # Admin Boleh Lanjut (Bypass pengecekan siswa)
+    
+    # 2. Cek apakah yang akses adalah SISWA PEMILIK?
+    # Kita pakai hasattr untuk memastikan user punya profil siswa dulu sebelum dicek
+    elif hasattr(request.user, 'siswa') and pembayaran.tagihan.siswa == request.user.siswa:
+        pass # Pemilik Asli Boleh Lanjut
+        
+    # 3. Jika bukan Admin dan bukan Pemilik -> TOLAK
+    else:
+        raise Http404("Anda tidak memiliki hak akses untuk kwitansi ini.")
+    
+    riwayat_pembayaran = pembayaran.tagihan.pembayaran_set.all().order_by('tanggal_bayar', 'id')
 
     context = {
         'pembayaran': pembayaran,
+        'tagihan': pembayaran.tagihan,
+        'riwayat_pembayaran': riwayat_pembayaran,
     }
 
     return render(request, 'pembayaran/kwitansi.html', context)
 
+@login_required
+def view_laporan_tunggakan(request):
+    # 1. Ambil Input Filter dari URL
+    tahun_sekarang = datetime.date.today().year
+    tahun_pilihan = request.GET.get('tahun', tahun_sekarang)
+    status_pilihan = request.GET.get('status', 'belum_lunas') # Default tampilkan yang nunggak
+
+    # 2. Query Dasar
+    data_tagihan = Tagihan.objects.all().select_related('siswa').order_by('siswa__kelas', 'siswa__nama_lengkap')
+
+    # 3. Filter Berdasarkan Tahun
+    if tahun_pilihan:
+        data_tagihan = data_tagihan.filter(tanggal_terbit__year=tahun_pilihan)
+
+    # 4. Filter Berdasarkan Status
+    judul_suffix = ""
+    if status_pilihan == 'lunas':
+        data_tagihan = data_tagihan.filter(lunas=True)
+        judul_suffix = " (LUNAS)"
+    elif status_pilihan == 'belum_lunas':
+        data_tagihan = data_tagihan.filter(lunas=False)
+        judul_suffix = " (TUNGGAKAN)"
+    # Jika 'semua', tidak perlu filter lunas/tidak
+
+    # 5. Hitung Total
+    total_nominal = data_tagihan.aggregate(Sum('jumlah_tagihan'))['jumlah_tagihan__sum'] or 0
+    
+    # 6. List Tahun untuk Dropdown (5 tahun ke belakang)
+    list_tahun = range(tahun_sekarang, tahun_sekarang - 5, -1)
+
+    context = {
+        'data_tagihan': data_tagihan,
+        'total_sisa': total_nominal, # Pakai variabel yang sama dgn template
+        'judul_laporan': f"LAPORAN KEUANGAN TAHUN {tahun_pilihan}{judul_suffix}",
+        'list_tahun': list_tahun,
+        'selected_tahun': int(tahun_pilihan),
+        'selected_status': status_pilihan,
+    }
+    return render(request, 'pembayaran/laporan_tunggakan_js.html', context)
 
 @csrf_exempt
 def webhook_midtrans(request):

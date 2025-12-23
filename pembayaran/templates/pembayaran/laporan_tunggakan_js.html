@@ -110,34 +110,33 @@
             page-break-inside: avoid; /* Jangan potong TTD */
         }
         .ttd-box {
-            text-align: center;
-            width: 220px;
+            text-align: left;
+            width: 198px;
             position: relative;
             font-size: 12px;
         }
         .ttd-images {
             position: relative;
-            height: 90px;
+            height: 100px;
             width: 100%;
-            margin: 5px 0;
+            margin: 0px 0;
         }
         .img-cap {
             position: absolute;
-            top: 0; left: 10px;
-            width: 120px; /* Sesuaikan */
+            top: 0; left: 0px;
+            width: 165px; /* Sesuaikan */
             z-index: 2;
             transform: rotate(-5deg);
         }
         .img-ttd {
             position: absolute;
-            top: 10px; left: 35px;
-            width: 120px; /* Sesuaikan */
+            top: 0px; left: 0px;
+            width: 160px; /* Sesuaikan */
             z-index: 3;
         }
         .nama-terang {
             font-weight: bold;
-            text-decoration: underline;
-            margin-top: 5px;
+            margin-top: 12px;
         }
 
         /* Print Mode */
@@ -165,10 +164,11 @@
 
         <div class="isi-laporan">
             
-            <div class="judul-laporan">Laporan Tunggakan Siswa</div>
+            <!--<div class="judul-laporan">Laporan Tunggakan Siswa</div>-->
+            <div class="judul-laporan">{{ judul_laporan }}</div>
             <div class="meta-info">
                 <strong>Tanggal Cetak:</strong> {% now "d F Y" %} <br>
-                <strong>Total Data:</strong> {{ data_tagihan.count }} Siswa
+                <strong>Total Data:</strong> {{ data_tagihan.count }} Tagihan
             </div>
 
             <table class="table-custom">
@@ -188,16 +188,36 @@
                         <td class="text-center">{{ forloop.counter }}</td>
                         <td>{{ tagihan.siswa.nama_lengkap }}</td>
                         <td class="text-center">{{ tagihan.siswa.kelas }}</td>
-                        <td>{{ tagihan.judul }}</td>
-                        <td class="text-center text-danger fw-bold">Belum Lunas</td>
-                        <td class="text-end">Rp {{ tagihan.sisa_tagihan|intcomma }}</td>
+                        <td>{{ tagihan.judul }} <br> <small>{{ tagihan.tahun }}</small></td>
+                        
+                        <td class="text-center">
+                            {% if tagihan.status == 'LUNAS' or tagihan.sisa_tagihan <= 0 %}
+                                Lunas
+                                {% if tagihan.tanggal_bayar %}
+                                    <br><small class="text-muted fw-normal" style="font-size:9px">{{ tagihan.tanggal_bayar|date:"d/m/y" }}</small>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-danger">Belum Lunas</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="text-end">
+                            {% if tagihan.sisa_tagihan > 0 %}
+                                <span class="text-danger">Rp {{ tagihan.sisa_tagihan|intcomma }}</span>
+                            {% elif tagihan.sisa_tagihan < 0 %}
+                                Rp {{ tagihan.sisa_tagihan|intcomma }}
+                            {% else %}
+                                Rp 0
+                            {% endif %}
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
+                
                 <tfoot class="table-footer">
                     <tr>
-                        <td colspan="5" class="text-center pe-3">TOTAL TUNGGAKAN</td>
-                        <td class="text-end">Rp {{ total_sisa|intcomma }}</td>
+                        <td colspan="5" class="text-center pe-3 text-uppercase fw-bold">TOTAL SISA PIUTANG SISWA</td>
+                        <td class="text-end fw-bold">Rp {{ total_sisa|intcomma }}</td>
                     </tr>
                 </tfoot>
             </table>
@@ -205,7 +225,7 @@
             <div class="ttd-container">
                 <div class="ttd-box">
                     <div style="font-size: 0.9rem;">Depok, {% now "d F Y" %}</div>
-                    <div style="font-size: 0.9rem;">Kepala Sekolah,</div>
+                    <div style="font-size: 0.9rem;">Kepala SMP IT Darus-Sholihin,</div>
                     
                     <div class="ttd-images">
                         <img src="{% static 'pembayaran/images/cap.png' %}" class="img-cap">
