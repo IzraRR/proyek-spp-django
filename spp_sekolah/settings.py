@@ -27,7 +27,7 @@ load_dotenv(BASE_DIR / '.env')
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'False') == 'True' # Mengubah string 'True' menjadi boolean
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true' # Mengubah string 'True' menjadi boolean
 
 ALLOWED_HOSTS = [
     '127.0.0.1',
@@ -40,6 +40,7 @@ ALLOWED_HOSTS = [
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -154,3 +155,43 @@ MIDTRANS_SERVER_KEY = os.getenv('MIDTRANS_SERVER_KEY')
 # Konfigurasi Static Files untuk Production
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+<<<<<<< HEAD
+=======
+
+# settings.py bagian paling bawah
+
+JAZZMIN_SETTINGS = {
+    "site_title": "SPP Darus Sholihin",
+    "site_header": "Admin SPP",
+    "site_brand": "Panel Admin",
+    "welcome_sign": "Ahlan Wa Sahlan, Admin",
+    "copyright": "SMP-IT Darus Sholihin",
+    
+    # Menu samping agar otomatis ngelink ke model
+    "show_ui_builder": False,
+}
+
+JAZZMIN_UI_TWEAKS = {
+    # Tema dasar yang bersih
+    "theme": "flatly", 
+    
+    # Navbar Atas: Hijau Tua (Success) + Teks Putih (Dark)
+    "navbar": "navbar-success navbar-dark", 
+    
+    # Sidebar Samping: Putih bersih dengan aksen Hijau saat diklik
+    "sidebar": "sidebar-light-success", 
+    
+    # Sidebar Brand (Logo kiri atas): Hijau
+    "brand_colour": "navbar-success",
+    
+    # Tombol-tombol utama jadi hijau
+    "button_classes": {
+        "primary": "btn-success",
+        "secondary": "btn-outline-secondary",
+        "info": "btn-info",
+        "warning": "btn-warning",
+        "danger": "btn-danger",
+        "success": "btn-success"
+    }
+}
+>>>>>>> a4a88bf (rev 2 Pro)

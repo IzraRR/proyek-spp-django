@@ -1,4 +1,5 @@
-{% load humanize %} <!DOCTYPE html>
+{% load humanize %} 
+<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -7,17 +8,94 @@
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
 
     <script type="text/javascript"
       src="https://app.midtrans.com/snap/snap.js"
       data-client-key="{{ midtrans_client_key }}"></script> 
+    
     <style>
-        body {
-            background-color: #f8f9fa; /* Warna abu-abu muda */
+        :root {
+            --hijau-utama: #145c3e;
+            --hijau-gelap: #0a3d28;
+            --emas: #d4af37;
+            --krem-bg: #f8f9fa;
         }
+
+        body {
+            background-color: var(--krem-bg);
+            font-family: 'Nunito', sans-serif;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--hijau-utama) 0%, var(--hijau-gelap) 100%) !important;
+            box-shadow: 0 4px 12px rgba(20, 92, 62, 0.15) !important;
+        }
+        
+        .navbar-brand {
+            font-family: 'Amiri', serif;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+            overflow: hidden;
+        }
+        
+        .card:not(.bg-danger):not(.bg-success) {
+            border-top: 4px solid var(--hijau-utama);
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+        }
+
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            font-weight: bold;
+            color: var(--hijau-utama);
+        }
+
         .card-title-amount {
-            font-weight: 300;
-            font-size: 2.5rem;
+            font-weight: 700;
+            font-size: 2.2rem;
+            color: #2c3e50;
+            font-family: 'Amiri', serif;
+        }
+
+        .btn-primary {
+            background-color: var(--hijau-utama) !important;
+            border-color: var(--hijau-utama) !important;
+        }
+        
+        .btn-primary:hover, .btn-primary:active, .btn-primary:focus {
+            background-color: var(--hijau-gelap) !important;
+            border-color: var(--emas) !important;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            border: none;
+        }
+
+        h2.display-5 {
+            font-family: 'Amiri', serif;
+            color: var(--hijau-utama);
+        }
+        
+        .badge {
+            font-weight: 600;
+            padding: 0.5em 0.8em;
+        }
+        
+        .bi-wallet-fill, .bi-hourglass-split {
+            color: inherit;
         }
     </style>
 </head>
@@ -26,7 +104,11 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
         <div class="container">
             <a class="navbar-brand" href="{% url 'dashboard' %}">
+<<<<<<< HEAD
                 <i class="bi bi-wallet-fill"></i> SPP SMP IT Darus-Sholihin
+=======
+                <i class="bi bi-cash-stack text-warning"></i> SPP SMP-IT DARUS-SHOLIHIN
+>>>>>>> a4a88bf (rev 2 Pro)
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -36,7 +118,7 @@
                     <li class="nav-item">
                         <form action="{% url 'logout' %}" method="post" class="d-flex">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-danger">
+                            <button type="submit" class="btn btn-danger btn-sm rounded-pill px-4">
                                 <i class="bi bi-box-arrow-right"></i> Logout
                             </button>
                         </form>
@@ -46,138 +128,157 @@
         </div>
     </nav>
 
-    <div class="container mt-4">
+    <div class="container mt-5">
 
-        <div class="row mb-4">
+        <div class="row mb-5 align-items-center">
             <div class="col-md-8">
-                <h2 class="display-5">Halo, {{ siswa.nama_lengkap }}!</h2>
-                <p class="lead text-muted">
-                    NIS: {{ siswa.nis }} | Kelas: {{ siswa.kelas }}
+                <h2 class="display-5 fw-bold">Assalamu'alaikum, {{ siswa.nama_lengkap }}</h2>
+                <p class="lead text-muted mb-1">
+                    <i class="bi bi-person-badge"></i> NIS: <strong>{{ siswa.nis }}</strong> &nbsp;|&nbsp; 
+                    <i class="bi bi-shop"></i> Kelas: <strong>{{ siswa.kelas }}</strong>
                 </p>
+<<<<<<< HEAD
                 <p>Selamat datang di dashboard pembayaran SPP SMP IT Darus-Sholihin. Silakan periksa tagihan Anda di bawah ini.</p>
+=======
+                <p class="text-secondary">Berikut adalah rincian kewajiban administrasi sekolah Anda.</p>
+>>>>>>> a4a88bf (rev 2 Pro)
             </div>
 
-            <div class="col-md-4">
+            <div class="col-md-4 mt-3 mt-md-0">
                 {% if jumlah_tunggakan > 0 %}
-                    <div class="card text-white bg-danger shadow h-100">
-                        <div class="card-body">
-                            <h5 class="card-title"><i class="bi bi-exclamation-triangle-fill"></i> Anda Memiliki Tunggakan</h5>
-                            <h3 class="display-6">{{ jumlah_tunggakan }} Tagihan</h3>
-                            <p class="card-text fs-5">
-                                Total: Rp {{ total_tunggakan|intcomma }}
-                            </p>
+                    <div class="card text-white bg-danger shadow h-100 border-0" style="background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%);">
+                        <div class="card-body text-center p-4">
+                            <div class="mb-2"><i class="bi bi-exclamation-triangle-fill fs-1 text-warning"></i></div>
+                            <h5 class="card-title opacity-75">Total Tunggakan</h5>
+                            <h3 class="fw-bold mb-0">Rp {{ total_tunggakan|intcomma }}</h3>
+                            <small class="badge bg-white text-danger mt-2 rounded-pill">{{ jumlah_tunggakan }} Tagihan Belum Lunas</small>
                         </div>
                     </div>
                 {% else %}
-                    <div class="card text-white bg-success shadow h-100">
-                        <div class="card-body">
-                            <h5 class="card-title"><i class="bi bi-check-circle-fill"></i> Semua Lunas</h5>
-                            <h3 class="display-6">Tidak Ada Tagihan</h3>
-                            <p class="card-text fs-5">
-                                Terima kasih atas pembayaran Anda!
-                            </p>
+                    <div class="card text-white bg-success shadow h-100 border-0" style="background: linear-gradient(135deg, var(--hijau-utama) 0%, var(--hijau-gelap) 100%);">
+                        <div class="card-body text-center p-4">
+                            <div class="mb-2"><i class="bi bi-patch-check-fill fs-1 text-warning"></i></div>
+                            <h5 class="card-title opacity-75">Status Pembayaran</h5>
+                            <h3 class="fw-bold mb-0">LUNAS</h3>
+                            <p class="small mt-2 mb-0">Alhamdulillah, tidak ada tagihan.</p>
                         </div>
                     </div>
                 {% endif %}
             </div>
         </div>
 
-        <hr>
+        <hr class="my-5" style="border-top: 2px dashed #ccc;">
 
         <div class="row mb-4">
-            <h3 class="mb-3"><i class="bi bi-hourglass-split"></i> Tagihan Belum Lunas</h3>
+            <div class="col-12 mb-3">
+                <h4 class="fw-bold" style="color: var(--hijau-utama); font-family: 'Amiri', serif;">
+                    <i class="bi bi-hourglass-split text-warning"></i> Tagihan Belum Lunas
+                </h4>
+            </div>
+            
             {% for tagihan in tagihan_belum_lunas %}
-                <div class="col-md-6 mb-3">
-                    <div class="card shadow-sm border-danger border-3">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">{{ tagihan.judul }}</h5>
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center bg-white py-3">
+                            <h5 class="mb-0 fs-6 text-uppercase ls-1">{{ tagihan.judul }}</h5>
                             
                             {% if tagihan.status == 'PENDING' %}
-                                <span class="badge bg-warning text-dark fs-6">{{ tagihan.get_status_display }}</span>
+                                <span class="badge bg-warning text-dark"><i class="bi bi-clock"></i> MENUNGGU</span>
                             {% elif tagihan.status == 'BELUM_LUNAS' %}
                                 {% if tagihan.jumlah_terbayar > 0 %}
-                                    <span class="badge bg-danger fs-6">BELUM LUNAS (DICICIL)</span>
+                                    <span class="badge bg-info text-dark">DICICIL</span>
                                 {% else %}
-                                    <span class="badge bg-danger fs-6">BELUM LUNAS</span>
+                                    <span class="badge bg-danger">BELUM LUNAS</span>
                                 {% endif %}
                             {% elif tagihan.status == 'KADALUARSA' %}
-                                <span class="badge bg-secondary fs-6">BATAL</span>
+                                <span class="badge bg-secondary">BATAL</span>
                             {% endif %}
                         </div>
 
-                        <div class="card-body">
-                            
-                            <h3 class="card-title-amount">Rp {{ tagihan.jumlah|intcomma }}</h3>
+                        <div class="card-body p-4">
+                            <h3 class="card-title-amount mb-3" style="color: #dc3545;">
+                                <span class="fs-5 text-muted fw-normal align-top">Rp</span> {{ tagihan.jumlah|intcomma }}
+                            </h3>
                             
                             {% if tagihan.jumlah_terbayar > 0 %}
-                                <div class="alert alert-warning py-2 mb-3">
-                                    <small class="fw-bold"><i class="bi bi-info-circle"></i> Info Pembayaran:</small><br>
-                                    Sudah masuk: Rp {{ tagihan.jumlah_terbayar|intcomma }}<br>
-                                    <strong>Kekurangan: Rp {{ tagihan.sisa_tagihan|intcomma }}</strong>
+                                <div class="alert alert-warning border-0 bg-opacity-10 py-2 px-3 mb-3 rounded-3" style="background-color: #fff3cd;">
+                                    <small class="d-block text-muted">Sudah dibayar: Rp {{ tagihan.jumlah_terbayar|intcomma }}</small>
+                                    <div class="fw-bold text-danger">Sisa: Rp {{ tagihan.sisa_tagihan|intcomma }}</div>
                                 </div>
                             {% endif %}
 
-                            <p class="card-text text-muted">
-                                Dibuat: {{ tagihan.tanggal_dibuat|date:"d F Y" }}
+                            <p class="card-text text-muted small mb-4">
+                                <i class="bi bi-calendar3"></i> Dibuat: {{ tagihan.tanggal_dibuat|date:"d F Y" }}
                             </p>
 
                             {% if tagihan.status != 'LUNAS' %}
-                                {% if tagihan.status == 'PENDING' %}
-                                    <button class="btn btn-warning btn-lg w-100" id="bayar-{{ tagihan.id }}" onclick="bayar('{{ tagihan.id }}')">
-                                        <i class="bi bi-hourglass-split"></i> Lanjutkan Pembayaran
-                                    </button>
-                                {% else %}
-                                    <button class="btn btn-primary btn-lg w-100" id="bayar-{{ tagihan.id }}" onclick="bayar('{{ tagihan.id }}')">
-                                        <i class="bi bi-credit-card-fill"></i> 
-                                        
-                                        {% if tagihan.jumlah_terbayar > 0 %}
-                                            Lunasi Sisa (Rp {{ tagihan.sisa_tagihan|intcomma }})
-                                        {% else %}
-                                            Bayar Sekarang
-                                        {% endif %}
-                                    </button>
-                                {% endif %}
+                                <div class="d-grid">
+                                    {% if tagihan.status == 'PENDING' %}
+                                        <button class="btn btn-warning fw-bold py-2" id="bayar-{{ tagihan.id }}" onclick="bayar('{{ tagihan.id }}')">
+                                            <i class="bi bi-arrow-clockwise"></i> Lanjutkan Pembayaran
+                                        </button>
+                                    {% else %}
+                                        <button class="btn btn-primary fw-bold py-2 shadow-sm" id="bayar-{{ tagihan.id }}" onclick="bayar('{{ tagihan.id }}')">
+                                            {% if tagihan.jumlah_terbayar > 0 %}
+                                                <i class="bi bi-wallet2"></i> Lunasi Sisa (Rp {{ tagihan.sisa_tagihan|intcomma }})
+                                            {% else %}
+                                                <i class="bi bi-credit-card-fill"></i> Bayar Sekarang
+                                            {% endif %}
+                                        </button>
+                                    {% endif %}
+                                </div>
                             {% endif %}
                         </div>
-                        </div>
+                    </div>
                 </div>
             {% empty %}
                 <div class="col-12">
-                    <p class="text-muted">Tidak ada tagihan yang perlu dibayar saat ini.</p>
+                    <div class="alert alert-success d-flex align-items-center" role="alert">
+                        <i class="bi bi-check-circle-fill fs-4 me-2"></i>
+                        <div>Alhamdulillah, tidak ada tagihan yang perlu dibayar saat ini.</div>
+                    </div>
                 </div>
             {% endfor %}
         </div>
 
 
-        <div class="row">
-            <h3 class="mb-3"><i class="bi bi-patch-check-fill"></i> Riwayat Pembayaran</h3>
+        <div class="row mt-5">
+            <div class="col-12 mb-3">
+                <h4 class="fw-bold" style="color: var(--hijau-utama); font-family: 'Amiri', serif;">
+                    <i class="bi bi-patch-check-fill text-success"></i> Riwayat Pembayaran (Lunas)
+                </h4>
+            </div>
+
             {% for tagihan in tagihan_lunas %}
                 <div class="col-md-6 mb-3">
-                    <div class="card shadow-sm border-success border-2">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0 text-muted">{{ tagihan.judul }}</h5>
-                            <span class="badge bg-success fs-6">LUNAS</span>
-                        </div>
-                        <div class="card-body text-muted">
-                            <h4 class="card-title-amount text-success">Rp {{ tagihan.jumlah|intcomma }}</h4>
+                    <div class="card shadow-sm border-0" style="border-left: 5px solid var(--hijau-utama) !important; border-top: none;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h6 class="fw-bold mb-1 text-dark">{{ tagihan.judul }}</h6>
+                                    <small class="text-muted">{{ tagihan.tanggal_dibuat|date:"d M Y" }}</small>
+                                </div>
+                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3"><i class="bi bi-check-all"></i> LUNAS</span>
+                            </div>
+                            
+                            <hr class="my-2 border-light">
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="fw-bold mb-0 text-success">Rp {{ tagihan.jumlah|intcomma }}</h5>
+                                {% with pembayaran=tagihan.pembayaran_set.first %}
+                                    {% if pembayaran %}
+                                        <a href="{% url 'lihat_kwitansi' pembayaran.id %}" class="btn btn-sm btn-outline-success rounded-pill">
+                                            <i class="bi bi-receipt"></i> Kwitansi
+                                        </a>
+                                    {% endif %}
+                                {% endwith %}
+                            </div>
+
                             {% with pembayaran=tagihan.pembayaran_set.first %}
                                 {% if pembayaran %}
-                                    <p class="card-text mb-0">
-                                        <i class="bi bi-calendar-check"></i> 
-                                        Dibayar: <strong>{{ pembayaran.tanggal_bayar|date:"d F Y, H:i" }}</strong>
-                                    </p>
-                                    <p class="card-text">
-                                        <i class="bi bi-credit-card"></i> 
-                                        Metode: <strong>{{ pembayaran.metode_pembayaran|title }}</strong>
-                                    </p>
-                                    <a href="{% url 'lihat_kwitansi' pembayaran.id %}" class="btn btn-outline-success btn-sm mt-2">
-                                        <i class="bi bi-receipt-cutoff"></i> Lihat Kwitansi
-                                    </a>
-                                {% else %}
-                                    <p class="card-text text-muted">
-                                        <i class="bi bi-person-check"></i> 
-                                        Status diubah manual oleh Admin (Tunai/Lunas).
-                                    </p>
+                                    <div class="mt-2 small text-muted bg-light p-2 rounded">
+                                        <i class="bi bi-calendar-check"></i> {{ pembayaran.tanggal_bayar|date:"d M Y, H:i" }} &bull; {{ pembayaran.metode_pembayaran|title }}
+                                    </div>
                                 {% endif %}
                             {% endwith %}
                         </div>
@@ -185,15 +286,23 @@
                 </div>
             {% empty %}
                 <div class="col-12">
-                    <p class="text-muted">Belum ada riwayat pembayaran.</p>
+                    <p class="text-muted fst-italic">Belum ada riwayat pembayaran yang lunas.</p>
                 </div>
             {% endfor %}
         </div>
 
     </div>
 
+<<<<<<< HEAD
     <footer class="text-center text-muted p-4 mt-5 bg-light">
         <p>&copy; 2025 SPP SMP IT DARUS-SHOLIHIN.</p>
+=======
+    <footer class="text-center text-muted py-4 mt-5" style="border-top: 1px solid #e9ecef;">
+        <p class="mb-0 small">
+            &copy; {% now "Y" %} SPP SMP-IT DARUS-SHOLIHIN. <br>
+            <span class="fst-italic">"Smart Outside, Piety Inside"</span>
+        </p>
+>>>>>>> a4a88bf (rev 2 Pro)
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
@@ -204,7 +313,6 @@
         tombolBayar.disabled = true; 
         tombolBayar.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Memproses...'; 
 
-        // Panggil backend Anda untuk mendapatkan token
         fetch(`/bayar/${tagihanId}/`)
           .then(response => response.json())
           .then(data => {
