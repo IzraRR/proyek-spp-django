@@ -155,10 +155,6 @@ MIDTRANS_SERVER_KEY = os.getenv('MIDTRANS_SERVER_KEY')
 # Konfigurasi Static Files untuk Production
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-<<<<<<< HEAD
-=======
-
-# settings.py bagian paling bawah
 
 JAZZMIN_SETTINGS = {
     "site_title": "SPP Darus Sholihin",
@@ -194,4 +190,3 @@ JAZZMIN_UI_TWEAKS = {
         "success": "btn-success"
     }
 }
->>>>>>> a4a88bf (rev 2 Pro)
